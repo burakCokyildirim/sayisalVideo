@@ -75,24 +75,27 @@ class Main:
             self.tuArray.append((x, y, width, height))
 
 
-    def start(self):
+    def start(self, array, color):
         imagePath = self.image.get()
         if os.path.exists(imagePath):
             openImg = Image.open(imagePath).convert("RGBA")
-            draw = ImageDraw.Draw(openImg)
-            draw.line(((0, 0), (10, 10)))
+            
             imageTK = ImageTk.PhotoImage(openImg)
             img = Label(self.mainFrame, image=imageTK, borderwidth=2, relief="raised")
             img.image = imageTK
             img.pack(side="bottom", fill="both", expand="yes")
 
+            draw = ImageDraw.Draw(openImg)
+            draw.line(((0, 0), (10, 10)))
+
     def show_lines(self):
         if self.flagCU.get():
-            print("CUFLAG")
+            self.start(self.cuArray, "red")
         if self.flagPU.get():
-            print("PUFLAG")
+            self.start(self.cuArray, "blue")
         if self.flagTU.get():
-            print("TUFLAG")
+            self.start(self.cuArray, "green")
+
 
 
 if __name__ == "__main__":
