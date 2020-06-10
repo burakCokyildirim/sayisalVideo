@@ -65,19 +65,22 @@ class Main:
             x = int(cu.split(",")[0].split("x= ")[1])
             y = int(cu.split(",")[1].split("y= ")[1])
             width = int(cu.split(",")[2].split("width= ")[1])
-            height = int(cu.split(",")[3].split("height= ")[1].split("\n")[0])
+            height = int(cu.split(",")[3].split(
+                "height= ")[1].split("\n")[0])
             self.cuArray.append((x, y, width, height))
         for pu in pus:
             x = int(pu.split(",")[0].split("x= ")[1])
             y = int(pu.split(",")[1].split("y= ")[1])
             width = int(pu.split(",")[2].split("width= ")[1])
-            height = int(pu.split(",")[3].split("height= ")[1].split("\n")[0])
+            height = int(pu.split(",")[3].split(
+                "height= ")[1].split("\n")[0])
             self.puArray.append((x, y, width, height))
         for tu in tus:
             x = int(tu.split(",")[0].split("x= ")[1])
             y = int(tu.split(",")[1].split("y= ")[1])
             width = int(tu.split(",")[2].split("width= ")[1])
-            height = int(tu.split(",")[3].split("height= ")[1].split("\n")[0])
+            height = int(tu.split(",")[3].split(
+                "height= ")[1].split("\n")[0])
             self.tuArray.append((x, y, width, height))
 
     def start(self):
@@ -89,18 +92,18 @@ class Main:
             openImg = self.show_lines()
             imageTK = ImageTk.PhotoImage(openImg)
             self.img = Label(self.mainFrame, image=imageTK,
-                             borderwidth=2, height=352, width=228, relief="raised")
+                             borderwidth=2, width=352, height=288, relief="raised")
             self.img.image = imageTK
             self.img.pack(side="bottom", fill="both", expand="yes")
 
     def show_lines(self):
         original_image = Image.open(self.image.get()).convert("RGBA")
+        if self.flagTU.get():
+            self.drive_rectangle(self.tuArray, original_image, "green")
         if self.flagCU.get():
             self.drive_rectangle(self.cuArray, original_image, "black")
         if self.flagPU.get():
             self.drive_rectangle(self.puArray, original_image, "red")
-        if self.flagTU.get():
-            self.drive_rectangle(self.tuArray, original_image, "green")
 
         return original_image
 
