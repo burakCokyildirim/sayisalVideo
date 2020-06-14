@@ -9,7 +9,7 @@ from PIL import Image, ImageTk, ImageDraw, ImageFont
 from tkinter import Button, Entry
 
 
-class Limiter(ttk.Scale):
+class Limiter(tk.Scale):
     def __init__(self, *args, **kwargs):
         self.precision = kwargs.pop('precision')
         self.chain = kwargs.pop('command', lambda *a: None)
@@ -31,19 +31,15 @@ class Main(ttk.Frame):
         self.flagPU = BooleanVar()
         self.flagTU = BooleanVar()
 
-        self.cuArray = []
-        self.puArray = []
-        self.tuArray = []
-
         self.readFiles()
 
         ttk.Frame.__init__(self, master=mainframe)
 
-        input_var = tk.IntVar(value=1)
-        slide = Limiter(mainframe, variable=input_var, orient='horizontal', length=24,
-                        command=self.callback, precision=4)
+        slide = Limiter(mainframe, orient='horizontal', length=24,
+                        command=self.callback, precision=0)
         slide['to'] = 24
         slide['from'] = 1
+        # slide['increment'] = 1
         slide.pack(fill=X, padx=10, pady=10)
 
         checkboxes = ttk.Frame(self.master)
@@ -106,34 +102,30 @@ class Main(ttk.Frame):
         self.canvas.configure(scrollregion=self.canvas.bbox('all'))
 
     def readFiles(self):
-        file1 = open("cus.txt", "r+")
-        file2 = open("pus.txt", "r+")
-        file3 = open("tus.txt", "r+")
-        cus = file1.readlines()
-        pus = file2.readlines()
-        tus = file3.readlines()
+        self.cuArray = []
+        self.puArray = []
+        for i in range(0, 24):
+            self.cuArray.append([])
+            self.puArray.append([])
+            file1 = open("values/cus" + str(i) + ".txt", "r+")
+            file2 = open("values/pus" + str(i) + ".txt", "r+")
+            cus = file1.readlines()
+            pus = file2.readlines()
 
-        for cu in cus:
-            x = int(cu.split(",")[0].split("x= ")[1])
-            y = int(cu.split(",")[1].split("y= ")[1])
-            width = int(cu.split(",")[2].split("width= ")[1])
-            height = int(cu.split(",")[3].split(
-                "height= ")[1].split("\n")[0])
-            self.cuArray.append((x, y, width, height))
-        for pu in pus:
-            x = int(pu.split(",")[0].split("x= ")[1])
-            y = int(pu.split(",")[1].split("y= ")[1])
-            width = int(pu.split(",")[2].split("width= ")[1])
-            height = int(pu.split(",")[3].split(
-                "height= ")[1].split("\n")[0])
-            self.puArray.append((x, y, width, height))
-        for tu in tus:
-            x = int(tu.split(",")[0].split("x= ")[1])
-            y = int(tu.split(",")[1].split("y= ")[1])
-            width = int(tu.split(",")[2].split("width= ")[1])
-            height = int(tu.split(",")[3].split(
-                "height= ")[1].split("\n")[0])
-            self.tuArray.append((x, y, width, height))
+            for cu in cus:
+                x = int(cu.split(",")[0].split("x= ")[1])
+                y = int(cu.split(",")[1].split("y= ")[1])
+                width = int(cu.split(",")[2].split("width= ")[1])
+                height = int(cu.split(",")[3].split(
+                    "height= ")[1].split("\n")[0])
+                self.cuArray[i].append((x, y, width, height))
+            for pu in pus:
+                x = int(pu.split(",")[0].split("x= ")[1])
+                y = int(pu.split(",")[1].split("y= ")[1])
+                width = int(pu.split(",")[2].split("width= ")[1])
+                height = int(pu.split(",")[3].split(
+                    "height= ")[1].split("\n")[0])
+                self.puArray[i].append((x, y, width, height))
 
     def show_image(self):
         ''' Show image on the Canvas '''
@@ -152,12 +144,12 @@ class Main(ttk.Frame):
 
     def show_lines(self):
         original_image = Image.open(self.imagePath)
-        if self.flagTU.get():
-            self.draw_lines(self.tuArray, original_image, "green")
         if self.flagCU.get():
-            self.draw_lines(self.cuArray, original_image, "black")
+            self.draw_lines(
+                self.cuArray[self.whichFrame-1], original_image, "green")
         if self.flagPU.get():
-            self.draw_lines(self.puArray, original_image, "red")
+            self.draw_lines(
+                self.puArray[self.whichFrame-1], original_image, "blue")
         self.image = original_image
         self.show_image()
 
@@ -168,7 +160,9 @@ class Main(ttk.Frame):
                 ((rec[0], rec[1]), (rec[0]+rec[2], rec[1]+rec[3])), outline=color)
 
     def callback(self, newvalue):
-        print('callback({!r})'.format(newvalue))
+        self.imagePath = 'images/output' + str(int(newvalue)) + '.png'
+        self.whichFrame = int(newvalue)
+        self.show_lines()
 
 
 if __name__ == "__main__":
