@@ -9,11 +9,23 @@ from PIL import Image, ImageTk, ImageDraw, ImageFont
 from tkinter import Button, Entry
 
 
+class Limiter(ttk.Scale):
+    def __init__(self, *args, **kwargs):
+        self.precision = kwargs.pop('precision')
+        self.chain = kwargs.pop('command', lambda *a: None)
+        super(Limiter, self).__init__(
+            *args, command=self._value_changed, **kwargs)
+
+    def _value_changed(self, newvalue):
+        newvalue = round(float(newvalue), self.precision)
+        self.winfo_toplevel().globalsetvar(self.cget('variable'), (newvalue))
+        self.chain(newvalue)
+
+
 class Main(ttk.Frame):
-    ''' Simple zoom with mouse wheel '''
 
     def __init__(self, mainframe):
-        self.imagePath = 'C:/Kadir/python/sayisalVideo/output-1.png'
+        self.imagePath = 'output-1.png'
         self.whichFrame = 1
         self.flagCU = BooleanVar()
         self.flagPU = BooleanVar()
@@ -25,17 +37,14 @@ class Main(ttk.Frame):
 
         self.readFiles()
 
-        ''' Initialize the main Frame '''
         ttk.Frame.__init__(self, master=mainframe)
 
-        indexFrame = ttk.Frame(self.master)
-        ttk.Button(indexFrame, text='-', command=self.prevFrame).grid(
-            row=0, column=0, pady=10, padx=10)
-        ttk.Entry(indexFrame, textvariable=str(self.whichFrame), width=50).grid(
-            row=0, column=1, pady=10, padx=10)
-        ttk.Button(indexFrame, text='+', command=self.nextFrame).grid(
-            row=0, column=2, pady=10, padx=10)
-        indexFrame.pack(padx=10, pady=10)
+        input_var = tk.IntVar(value=1)
+        slide = Limiter(mainframe, variable=input_var, orient='horizontal', length=24,
+                        command=self.callback, precision=4)
+        slide['to'] = 24
+        slide['from'] = 1
+        slide.pack(fill=X, padx=10, pady=10)
 
         checkboxes = ttk.Frame(self.master)
         ttk.Checkbutton(checkboxes, text="CU", variable=self.flagCU, command=self.show_lines).grid(row=0, column=1,
@@ -46,29 +55,27 @@ class Main(ttk.Frame):
                                                                                                    sticky=W, padx=15)
         checkboxes.pack(padx=10, pady=10)
 
-        # Open image
         self.image = Image.open(self.imagePath)
 
         cFrame = ttk.Frame(self.master, height=600)
         cFrame.pack(expand=1, pady=10, padx=5)
-        # Create canvas and put image on it
+
         self.canvas = tk.Canvas(cFrame, highlightthickness=0)
         self.canvas.grid(row=0, column=0, sticky='nswe')
         self.canvas.pack()
 
-        # Make the canvas expandable
         self.master.rowconfigure(0, weight=1)
         self.master.columnconfigure(0, weight=1)
-        # Bind events to the Canvas
+
         self.canvas.bind('<ButtonPress-1>', self.move_from)
         self.canvas.bind('<B1-Motion>',     self.move_to)
-        # with Windows and MacOS, but not Linux
+        # Windows and MacOS
         self.canvas.bind('<MouseWheel>', self.wheel)
-        # only with Linux, wheel scroll down
+        # Linux, wheel scroll down
         self.canvas.bind('<Button-5>',   self.wheel)
-        # only with Linux, wheel scroll up
+        # Linux, wheel scroll up
         self.canvas.bind('<Button-4>',   self.wheel)
-        # Show image and plot some random test rectangles on the canvas
+
         self.imscale = 1.0
         self.imageid = None
         self.delta = 0.75
@@ -76,11 +83,9 @@ class Main(ttk.Frame):
         self.canvas.configure(scrollregion=self.canvas.bbox('all'))
 
     def move_from(self, event):
-        ''' Remember previous coordinates for scrolling with the mouse '''
         self.canvas.scan_mark(event.x, event.y)
 
     def move_to(self, event):
-        ''' Drag (move) canvas to the new position '''
         self.canvas.scan_dragto(event.x, event.y, gain=1)
 
     def wheel(self, event):
@@ -162,16 +167,8 @@ class Main(ttk.Frame):
             drawCU.rectangle(
                 ((rec[0], rec[1]), (rec[0]+rec[2], rec[1]+rec[3])), outline=color)
 
-    def prevFrame(self):
-        if self.whichFrame >= 0:
-            self.whichFrame -= 1
-            # pathi değiştir
-            # Image.open(newpath)
-            # show_image
-
-    def nextFrame(self):
-        if self.whichFrame <= 60:
-            self.whichFrame += 1
+    def callback(self, newvalue):
+        print('callback({!r})'.format(newvalue))
 
 
 if __name__ == "__main__":
